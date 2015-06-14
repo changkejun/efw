@@ -1,2 +1,2 @@
 # efw
-It is a java server-side javascript framework, and I think it may be an "Easy FrameWork".
+It is an ajax web framework by java for server-side javascript, and I think it may be an "Easy FrameWork".
