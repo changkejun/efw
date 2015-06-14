@@ -1,0 +1,17 @@
+efw.client.messages.OtherErrorMessage="予想外エラーが発生しました。";
+efw.client.messages.CanNotContinueMessage="継続処理はできません。";
+efw.client.messages.ParamsFormatErrorException="イベントのパラメーター定義が正しくありません。";
+efw.client.messages.EventFolderDoesNotExistException="プロパティファイルに定義されるefw.event.folderは存在しません。";
+efw.client.messages.SqlfolderIsNotExistsException="プロパティファイルに定義されるefw.sql.folderは存在しません。";
+efw.client.messages.EfwSystemInitFailedException="efwシステム初期化が失敗しました。";
+efw.client.messages.EfwFireNeedEventIdException="efw.fireの呼び出しパラメータにeventIdが必要です。";
+efw.client.messages.RequestIsNotJSONException="リクエストはJSONではありません。";
+efw.client.messages.EventJsLoadFailedException="イベントJSファイルのロードは失敗しました。";
+efw.client.messages.EventJsGetParamsFormatFailedException="イベントJSファイルから「paramsformat」の取得は失敗しました。";
+efw.client.messages.DatabaseFailedToOpenException="データベースを開く操作は失敗しました。";
+efw.client.messages.SqlGroupIdIsNotExistsException="利用するSQLグループは存在しません。";
+efw.client.messages.SqlIdIsNotExistsException="利用するSQLは存在しません。";
+efw.client.messages.SqlIdIsDuplicateException="利用するSQLは重複です。";
+efw.client.messages.XMLFileIsNotLegalException="XMLファイルは正しくありません。";
+efw.client.messages.XMLTagIsNotLegalException="XMLタグは正しくありません。";
+efw.client.messages.SessionTimeoutException="セッションタイムアウトになりました。再ログインしてください。";

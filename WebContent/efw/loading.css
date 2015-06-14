@@ -1,0 +1,6 @@
+#loading{
+	z-index:100;
+	background-image:url(../efw/images/loading.gif);
+	background-position:center center;
+	background-repeat:no-repeat;
+}
