@@ -1,6 +1,8 @@
+/**
+ * efw framework server library for imart7
+ * @author Chang Kejun
+ */
 ///////////////////////////////////////////////////////////////////////////////
-//the function will be called by html
-//==========================================================
 function doPost(req){
 	var eventId=req.eventId;
 	var params=req.params;
@@ -42,7 +44,7 @@ efw.server.db.executeQuery=function(oParam){
 	for (var key in params){mp.put(key,params[key]);}
 	var sql=oSql.getSqlString(mp)+"";
 	var pms=oSql.getSqlParams(mp);
-	var parameters=efw.server.db.getDbParameters(pms);
+	var parameters=efw_server_db_getDbParameters(pms);
 	var result=DatabaseManager.select(sql,parameters);
 
 	if (result.error){
@@ -77,7 +79,7 @@ efw.server.db.executeUpdate=function(oParam){
 	var mp=new java.util.HashMap();
 	for (var key in params){mp.put(key,params[key]);}
 	var sql=oSql.getSqlString(mp)+"";
-	var parameters=efw.server.db.getDbParameters(oSql.getSqlParams(mp));
+	var parameters=efw_server_db_getDbParameters(oSql.getSqlParams(mp));
 
 	var result=DatabaseManager.execute(sql,parameters);
 	if (result.error){
@@ -95,7 +97,7 @@ efw.server.db.execute=function(oParam){
 	var mp=new java.util.HashMap();
 	for (var key in params){mp.put(key,params[key]);}
 	var sql=oSql.getSqlString(mp)+"";
-	var parameters=efw.server.db.getDbParameters(oSql.getSqlParams(mp));
+	var parameters=efw_server_db_getDbParameters(oSql.getSqlParams(mp));
 	
 	var result=DatabaseManager.execute(sql,parameters);
 	if (result.error){
@@ -111,7 +113,7 @@ efw.server.db.commit=function(){
 
 
 //==========================================================
-efw.server.db.getDbParameters= function(aryParam){
+function efw_server_db_getDbParameters(aryParam){
 	var ret=new Array();
 	for (var i=0;i<aryParam.size();i++){
 		var value=aryParam.get(i);

@@ -1,3 +1,7 @@
+/**
+ * efw framework client library
+ * @author Chang Kejun
+ */
 ///////////////////////////////////////////////////////////////////////////////
 var efw={};
 efw.client={};
@@ -28,7 +32,7 @@ efw.client.fire=function(eventParams){
 			if (data.error){//if it is error from efw server side
 				efw_client_returnAlert(data.error,eventId);
 			}else{//if no error, run the second fire
-				efw_client_fire2nd(eventId,manualParams,data,successCallback);
+				efw_client_fire2nd(eventId,data,manualParams,successCallback);
 			}
 		},
 		error: function(errorResponse, errorType, errorMessage){
@@ -60,7 +64,7 @@ efw.client.alert=function(msg,callback){
 	$("#efw_client_alert").dialog("open");
 };
 ///////////////////////////////////////////////////////////////////////////////
-function efw_client_fire2nd(eventId,manualParams,paramsFormat,successCallback){
+function efw_client_fire2nd(eventId,paramsFormat,manualParams,successCallback){
 	//auto collect params
 	//-------------------------------------------------------------------------
 	try{
@@ -309,7 +313,7 @@ function efw_client_showValues(values){
 				});
 			}
 		}
-	}	
+	}
 }
 //=============================================================================
 function efw_client_consoleLog(msg,data){

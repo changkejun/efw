@@ -1,3 +1,7 @@
+/**
+ * efw framework server plugins for customize
+ * @author Chang Kejun
+ */
 ///////////////////////////////////////////////////////////////////////////////
 efw.server.event.prepare=function(event,params){
 	//the login check
@@ -17,7 +21,6 @@ efw.server.event.prepare=function(event,params){
 	//add your program here
 	//-------------------------------------------------------------------------
 	//TODO
-	return null;
 };
 ///////////////////////////////////////////////////////////////////////////////
 efw.server.event.finish=function(event,params,result){

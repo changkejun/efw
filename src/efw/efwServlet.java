@@ -108,8 +108,8 @@ public final class efwServlet extends HttpServlet {
 
 	/**
 	 * JQueryからのAjax通信をサーバーサイトJavaScriptへ転送し、その実行結果をレスポンスする。
-	 * <br>efwサーブレット が初期化失敗の場合、EfwSystemInitFailedExceptionのエラー情報をレスポンスする。
-	 * <br>サーバーサイトJavaScriptが実行エラーの場合、EfwScriptEvalFailedExceptionのエラー情報をレスポンスする。
+	 * <br>efwサーブレット が初期化失敗の場合、SystemInitFailedExceptionのエラー情報をレスポンスする。
+	 * <br>サーバーサイトJavaScriptが実行エラーの場合、ScriptEvalFailedExceptionのエラー情報をレスポンスする。
 	 * @param request JQueryがefwサーブレット へ要求したJSON内容を含む HttpServletRequest オブジェクト。
 	 * @param response efwサーブレットがJQueryに返すJSON内容を含む HttpServletResponse オブジェクト 。
 	 */

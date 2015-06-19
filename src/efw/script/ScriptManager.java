@@ -60,10 +60,10 @@ public final class ScriptManager {
      */
     private static final String KEY_ISDEBUG="_isdebug";
     /**
-     * スクリプトエンジンに渡すスクリプトエンジン名称のキー。
-     * 「_enginename」に固定。
+     * スクリプトエンジンに渡すスクリプトエンジンのキー。
+     * 「_engine」に固定。
      */
-    private static final String KEY_ENGINENAME="_enginename";
+    private static final String KEY_ENGINE="_engine";
     /**
      * スレッドにスクリプトエンジンを付けるため、ThreadLocalを定義する。
      */
@@ -98,7 +98,8 @@ public final class ScriptManager {
 			se.put(KEY_SERVERFOLDER, serverFolder);
 			se.put(KEY_EVENTFOLDER, eventFolder);
 			se.put(KEY_ISDEBUG, isDebug);
-			se.put(KEY_ENGINENAME, se.getFactory().getEngineName());
+			//se.put(KEY_ENGINENAME, se.getFactory().getEngineName());
+			se.put(KEY_ENGINE, se);
 			load(serverFolder+"/efw.server.js");
 		}
 		se.put(KEY_REQUEST, request);

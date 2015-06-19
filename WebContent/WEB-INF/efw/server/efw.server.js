@@ -1,13 +1,16 @@
+/**
+ * efw framework server library
+ * @author Chang Kejun
+ */
 ///////////////////////////////////////////////////////////////////////////////
 var _request;
 var _serverfolder;
 var _eventfolder;
 var _isdebug;
 var _database;
-var _enginename;// Mozilla Rhino 1.6 1.7 / Oracle Nashorn 1.8
+var _engine;// Mozilla Rhino 1.6 1.7 / Oracle Nashorn 1.8
 ///////////////////////////////////////////////////////////////////////////////
 function doPost(req){
-	
 	var eventId=req.eventId;
 	var params=req.params;
 	var needLoad=false;
@@ -41,13 +44,7 @@ function doPost(req){
 	return JSON.stringify(result);
 }
 ///////////////////////////////////////////////////////////////////////////////
-/**
- * efwフレームワーク。
- */
-efw = {};
-/**
- * efwフレームワークのサーバーオブジェクト。
- */
+var efw = {};
 efw.server={};
 efw.server.event={};
 efw.server.events={};
@@ -55,9 +52,9 @@ efw.server.session={};
 efw.server.properties={};
 efw.server.db={};
 ///////////////////////////////////////////////////////////////////////////////
-if (_enginename=="Mozilla Rhino"){//java 1.6 1.7
+if (_engine.getFactory().getEngineName()=="Mozilla Rhino"){//java 1.6 1.7
 	function load(filename) { Packages.efw.script.ScriptManager.load(filename);}
-	if (!{}.toJSON){
+	if(_engine.getFactory().getEngineVersion()<"1.7"){//java 1.6
 		load(_serverfolder+"/json2.min.js");
 	}
 }
@@ -110,8 +107,12 @@ efw.server.event.fire=function(event,params){
 	}
 };
 ///////////////////////////////////////////////////////////////////////////////
-efw.server.db.open=function(){
-	_database=Packages.efw.db.DatabaseManager.open();
+efw.server.db.open=function(jdbcResourceName){
+	if (jdbcResourceName==null){
+		_database=Packages.efw.db.DatabaseManager.open();
+	}else{
+		_database=Packages.efw.db.DatabaseManager.open(jdbcResourceName);
+	}
 };
 //change recordset to java array
 efw.server.db.executeQuery=function(oParam){
@@ -120,7 +121,7 @@ efw.server.db.executeQuery=function(oParam){
 	var params=oParam.params;
 	var mapping=oParam.mapping;
 
-	if (_enginename=="Mozilla Rhino"){//java 1.6 1.7
+	if (_engine.getFactory().getEngineName()=="Mozilla Rhino"){//java 1.6 1.7
 		var mp=new java.util.HashMap();
 		for (var key in params){mp.put(key,params[key]);}
 		params=mp;
@@ -129,7 +130,7 @@ efw.server.db.executeQuery=function(oParam){
 	var ret=[];
 	var meta=rs.getMetaData();
 	var parseValue=function(vl){
-		if (_enginename=="Mozilla Rhino"){//java 1.6 1.7
+		if (_engine.getFactory().getEngineName()=="Mozilla Rhino"){//java 1.6 1.7
 			var value = vl;
 		    if (typeof value =="object"){
 				if (value==null){
