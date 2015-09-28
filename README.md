@@ -14,4 +14,4 @@ to close the distance of Jquery and Sql, in order to impove the programming prod
 
 Copyright 2015 Chang Kejun.
 
-<img src="http://efw.crazy-programmer.net/images/kwfstatistics.png?"> 
+<img src="http://efw.crazy-programmer.net/images/kwfstatistics.png"> 
