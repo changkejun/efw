@@ -40,6 +40,26 @@ efw.client.fire=function(eventParams){
 	efw_first.doPost({"eventId":eventId});
 };
 //=============================================================================
+efw.client.pickup=function(paramsFormat,manualParams){
+	try{
+		return efw_client_pickupParams(paramsFormat,document.body,manualParams);
+	}catch(e){
+		efw_client_consoleLog("Params format error",e);
+		efw_client_returnAlert({errorType:"ParamsFormatErrorException",canContinue:false});
+		throw e;//use it to break user program.
+	}
+};
+//=============================================================================
+efw.client.show=function(values){
+	try{
+		efw_client_showValues(values);
+	}catch(e){
+		efw_client_consoleLog("Show values error",e);
+		efw_client_returnAlert({errorType:"ShowValuesErrorException",canContinue:false});
+		throw e;//use it to break user program.
+	}
+};
+//=============================================================================
 efw.client.alert=function(msg,callback){
 	if($("#efw_client_alert").size()==0){
 		$("body").append("<div id='efw_client_alert'><p></p></div>");
@@ -81,7 +101,7 @@ function efw_client_fire2nd(eventId,paramsFormat,manualParams,successCallback){
 				efw_client_showValues(data);
 			}catch(e){
 				efw_client_consoleLog("Second calling error",e);
-				efw_client_returnAlert(e,eventId);
+				efw_client_returnAlert({errorType:"ShowValuesErrorException",canContinue:false},eventId);  
 				return;
 			}
 			try{
@@ -92,7 +112,7 @@ function efw_client_fire2nd(eventId,paramsFormat,manualParams,successCallback){
 				e.errorType="success function";
 				e.errorMessage=msg;
 				efw_client_consoleLog("Success function error",e);
-				efw_client_returnAlert(e,eventId);
+				efw_client_returnAlert({errorType:"SuccessCallbackErrorException",canContinue:false},eventId);  
 			}
 		}else{
 			if (data.error){
@@ -105,15 +125,15 @@ function efw_client_fire2nd(eventId,paramsFormat,manualParams,successCallback){
 				e.errorType="data type";
 				e.errorMessage="The second calling return is not an array.";
 				efw_client_consoleLog("Second calling error",e);
-				efw_client_returnAlert(e,eventId);
+				efw_client_returnAlert({errorType:"ReturnIsNotArrayErrorException",canContinue:false},eventId);  
 			}
 		}
 	};
 	efw.client.fire.second_error=function(ex){
 		var e={};
-		e.errorResponse="";//TODO
-		e.errorType="";;//TODO
-		e.errorMessage=ex.message;;//TODO
+		e.errorResponse="";
+		e.errorType="";
+		e.errorMessage=ex.message;
 		efw_client_consoleLog("Second calling error",e);
 		efw_client_returnAlert(e,eventId);
 	};
@@ -132,6 +152,11 @@ function efw_client_pickupParams(paramsFormat,context,manualParams){
 				var tgNm=element[0].tagName;
 				if(tgNm=="INPUT"||tgNm=="SELECT"||tgNm=="TEXTAREA"){
 					vl=element.val();
+					if(element[0].type=="checkbox"){
+						if(!element[0].checked){
+							vl=null;
+						}
+					}
 				}else{
 					vl=element.text();
 				}
@@ -233,6 +258,7 @@ function efw_client_showValues(values){
 							  (this.tagName=="INPUT"&&this.type=="text")
 							||(this.tagName=="INPUT"&&this.type=="password")
 							||(this.tagName=="INPUT"&&this.type=="button")
+							||(this.tagName=="INPUT"&&this.type=="hidden")
 							||(this.tagName=="INPUT"&&this.type=="file")
 							||(this.tagName=="TEXTAREA")
 						){
@@ -247,7 +273,7 @@ function efw_client_showValues(values){
 								$(this).removeAttr("checked"); 
 							}
 						}else if(this.tagName=="SELECT"){//set data with selected attribute
-							var dataAry=data.split(",");
+							var dataAry=(""+data).split(",");
 							$("option",$(this)).removeAttr("selected");
 							for(var dataAry_idx=0;dataAry_idx<dataAry.length;dataAry_idx++){
 								$("option",$(this)).each(function(){
@@ -293,7 +319,8 @@ function efw_client_showValues(values){
 						for(var dataRow_key in dataRow){
 							var data=dataRow[dataRow_key];
 							if (data==null){data="";}else{data=""+data;}//if data isnull then change it to blank
-							data=data.replace(/&/g,'&amp;').replace(/>/g,'&gt;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+							temp_appendmask=temp_appendmask.split("{{"+dataRow_key+"}}").join(data);
+							data=data.replace(/&/g,'&amp;').replace(/>/g,'&gt;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 							temp_appendmask=temp_appendmask.split("{"+dataRow_key+"}").join(data);
 						}
 						$(this).append(temp_appendmask);
@@ -343,10 +370,11 @@ function efw_client_returnAlert(error,eventId){
 		}
 	}
 	if (!error.canContinue){
-		msg+="<br>"+efw.client.messages.CanNotContinueMessage;
+		msg+="\n"+efw.client.messages.CanNotContinueMessage;
 	}
 	if (eventId){
-		msg+="<br>eventId="+eventId;
+		msg+="\neventId="+eventId;
 	}
-	efw.client.alert(msg);
+	window.alert(msg);
+	//efw.client.alert(msg);
 };

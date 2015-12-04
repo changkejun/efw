@@ -103,11 +103,7 @@ public final class ScriptManager {
 			load(serverFolder+"/efw.server.js");
 		}
 		se.put(KEY_REQUEST, request);
-
-		BufferedReader rd=new BufferedReader(new InputStreamReader(request.getInputStream()));
-		String requestString = new String(rd.readLine().getBytes(),SCRIPT_CHAR_SET);
-		rd.close();
-		
+		String requestString=request.getParameter("data");
 		return (String)se.eval(String.format("doPost(%s)",requestString));
 	}
 

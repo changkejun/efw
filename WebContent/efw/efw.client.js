@@ -25,7 +25,8 @@ efw.client.fire=function(eventParams){
 		async: true,//don't use async
 		dataType: "json",//send or get data by json type
 		//first calling only send groupid and eventid
-		data:JSON.stringify({"eventId":eventId}),
+		data:{"data":JSON.stringify({"eventId":eventId})},
+		
 		success: function(data){
 			efw_client_consoleLog("First calling result",data);
 			//if it is success,the data must be a json object.
@@ -46,6 +47,26 @@ efw.client.fire=function(eventParams){
 	});
 };
 //=============================================================================
+efw.client.pickup=function(paramsFormat,manualParams){
+	try{
+		return efw_client_pickupParams(paramsFormat,document.body,manualParams);
+	}catch(e){
+		efw_client_consoleLog("Params format error",e);
+		efw_client_returnAlert({errorType:"ParamsFormatErrorException",canContinue:false});
+		throw e;//use it to break user program.
+	}
+};
+//=============================================================================
+efw.client.show=function(values){
+	try{
+		efw_client_showValues(values);
+	}catch(e){
+		efw_client_consoleLog("Show values error",e);
+		efw_client_returnAlert({errorType:"ShowValuesErrorException",canContinue:false});
+		throw e;//use it to break user program.
+	}
+};
+//=============================================================================
 efw.client.alert=function(msg,callback){
 	if($("#efw_client_alert").size()==0){
 		$("body").append("<div id='efw_client_alert'><p></p></div>");
@@ -53,13 +74,14 @@ efw.client.alert=function(msg,callback){
 		.dialog({
 			modal: true,
 			width:500,
-			title:"知らせメッセージ",
+			title:"メッセージ",
 			buttons: {"OK":function(){
 				$(this).dialog("close").remove();
 				if(callback)callback();
 			}}
 		});
 	}
+	msg=msg.replace(/\n/g,"<br>");
 	$("#efw_client_alert p").html(msg);
 	$("#efw_client_alert").dialog("open");
 };
@@ -86,7 +108,7 @@ function efw_client_fire2nd(eventId,paramsFormat,manualParams,successCallback){
 		async: true,//don't use async
 		dataType: "json",//send or get data by json type
 		//first calling only send groupid and eventid
-		data:JSON.stringify({"eventId":eventId,"params":params}),
+		data:{"data":JSON.stringify({"eventId":eventId,"params":params})},
 		success: function(data){
 			if($.type(data)=="array"){
 				efw_client_consoleLog("Second calling result",data);
@@ -94,7 +116,7 @@ function efw_client_fire2nd(eventId,paramsFormat,manualParams,successCallback){
 					efw_client_showValues(data);
 				}catch(e){
 					efw_client_consoleLog("Second calling error",e);
-					efw_client_returnAlert(e,eventId);
+					efw_client_returnAlert({errorType:"ShowValuesErrorException",canContinue:false},eventId);
 					return;
 				}
 				try{
@@ -105,7 +127,7 @@ function efw_client_fire2nd(eventId,paramsFormat,manualParams,successCallback){
 					e.errorType="success function";
 					e.errorMessage=msg;
 					efw_client_consoleLog("Success function error",e);
-					efw_client_returnAlert(e,eventId);
+					efw_client_returnAlert({errorType:"SuccessCallbackErrorException",canContinue:false},eventId);
 				}
 			}else{
 				if (data.error){
@@ -118,7 +140,7 @@ function efw_client_fire2nd(eventId,paramsFormat,manualParams,successCallback){
 					e.errorType="data type";
 					e.errorMessage="The second calling return is not an array.";
 					efw_client_consoleLog("Second calling error",e);
-					efw_client_returnAlert(e,eventId);
+					efw_client_returnAlert({errorType:"ReturnIsNotArrayErrorException",canContinue:false},eventId);
 				}
 			}
 		},
@@ -139,11 +161,19 @@ function efw_client_pickupParams(paramsFormat,context,manualParams){
 		var format=paramsFormat[key];
 		var element=$(key,$(context));
 		var vl=null;
-		if (format==null){
+		//if format is null, it means the value should be a string.
+		//if format is string exp 'yyyy/MM/dd', 
+		//   it means the value should be parsed by the format in server.
+		if (format==null||$.type(format)=="string"){
 			if (element.length==1){
 				var tgNm=element[0].tagName;
 				if(tgNm=="INPUT"||tgNm=="SELECT"||tgNm=="TEXTAREA"){
 					vl=element.val();
+					if(element[0].type=="checkbox"){
+						if(!element[0].checked){
+							vl=null;
+						}
+					}
 				}else{
 					vl=element.text();
 				}
@@ -245,6 +275,7 @@ function efw_client_showValues(values){
 							  (this.tagName=="INPUT"&&this.type=="text")
 							||(this.tagName=="INPUT"&&this.type=="password")
 							||(this.tagName=="INPUT"&&this.type=="button")
+							||(this.tagName=="INPUT"&&this.type=="hidden")
 							||(this.tagName=="INPUT"&&this.type=="file")
 							||(this.tagName=="TEXTAREA")
 						){
@@ -259,7 +290,7 @@ function efw_client_showValues(values){
 								$(this).removeAttr("checked"); 
 							}
 						}else if(this.tagName=="SELECT"){//set data with selected attribute
-							var dataAry=data.split(",");
+							var dataAry=(""+data).split(",");
 							$("option",$(this)).removeAttr("selected");
 							for(var dataAry_idx=0;dataAry_idx<dataAry.length;dataAry_idx++){
 								$("option",$(this)).each(function(){
@@ -305,7 +336,8 @@ function efw_client_showValues(values){
 						for(var dataRow_key in dataRow){
 							var data=dataRow[dataRow_key];
 							if (data==null){data="";}else{data=""+data;}//if data isnull then change it to blank
-							data=data.replace(/&/g,'&amp;').replace(/>/g,'&gt;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+							temp_appendmask=temp_appendmask.split("{{"+dataRow_key+"}}").join(data);
+							data=data.replace(/&/g,'&amp;').replace(/>/g,'&gt;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 							temp_appendmask=temp_appendmask.split("{"+dataRow_key+"}").join(data);
 						}
 						$(this).append(temp_appendmask);
@@ -355,10 +387,10 @@ function efw_client_returnAlert(error,eventId){
 		}
 	}
 	if (!error.canContinue){
-		msg+="<br>"+efw.client.messages.CanNotContinueMessage;
+		msg+="\n"+efw.client.messages.CanNotContinueMessage;
 	}
 	if (eventId){
-		msg+="<br>eventId="+eventId;
+		msg+="\n"+"eventId="+eventId;
 	}
 	efw.client.alert(msg);
 };

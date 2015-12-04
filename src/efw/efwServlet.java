@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import efw.db.DatabaseManager;
+import efw.format.FormatManager;
 import efw.log.LogManager;
 import efw.properties.PropertiesManager;
 import efw.script.ScriptManager;
@@ -94,6 +95,8 @@ public final class efwServlet extends HttpServlet {
     		LogManager.InitCommonDebug("DatabaseManager.init");
             ScriptManager.init(serverFolder,eventFolder,isDebug);
     		LogManager.InitCommonDebug("ScriptManager.init");
+    		FormatManager.init();
+    		LogManager.InitCommonDebug("FormatManager.init");
     		//init is success
     		initSuccessFlag=true;
             LogManager.InitCommonDebug("efwServlet.init");

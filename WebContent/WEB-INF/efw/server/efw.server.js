@@ -35,13 +35,60 @@ function doPost(req){
 		})(eventId);
 	}
 	var event=efw.server.events[eventId];
-	var result;
-	if (params==null){
-		result=event.paramsformat;
-	}else{
-		result=efw.server.event.fire(event,params);
+	var paramsformat=event.paramsformat;
+	var include=event.include;
+	if (include!=null){
+		for(var i=0;i<include.length;i++){
+			if (include[i].mergeParamsformat){
+				var eventsub=efw.server.events[include[i].eventId];
+				var subparamsformat=eventsub.paramsformat;
+				for (var key in subparamsformat){
+					paramsformat[key]=subparamsformat[key];//only the top layer,not into sub layer.
+				}
+			}
+		}
 	}
-	return JSON.stringify(result);
+	if (params==null){
+		return JSON.stringify(paramsformat);
+	}else{
+		function formatParams(pms,fts){
+			for(var key in fts){
+				var format=fts[key];
+				var param=pms[key];
+				if(param!=null&&param!=""){
+					if(typeof format =="string"){
+						if(format.indexOf("#")>-1||format.indexOf("0")>-1){//number #,##0.0
+							var num;
+							try{
+								num=0+new Number(Packages.efw.format.FormatManager.parseNumber(param,format));
+							}catch(e){
+								Packages.efw.log.LogManager.WariningDebug("Input value ["+ param + "] is not matched to format ["+format+"]","");
+								num=null;
+							}
+							pms[key]=num;
+						}else{//date YYYY/MM/DD
+							var dt=new Date();
+							try{
+								dt.setTime(Packages.efw.format.FormatManager.parseDate(param,format).getTime());
+							}catch(e){
+								Packages.efw.log.LogManager.WariningDebug("Input value ["+ param + "] is not matched to format ["+format+"]","");
+								dt=null;
+							}
+							pms[key]=dt;
+						}
+					}else if(Array.isArray(format)){
+						for(var i=0;i<param.length;i++){
+							formatParams(param[i],format[0]);
+						}
+					}else if(typeof format ==="object"){
+						formatParams(param,format);
+					}
+				}
+			}
+		};
+		formatParams(params,paramsformat);
+		return JSON.stringify(efw.server.event.fire(event,params));
+	}
 }
 ///////////////////////////////////////////////////////////////////////////////
 var efw = {};
@@ -103,7 +150,10 @@ efw.server.event.fire=function(event,params){
 		return result;
 	}catch(e){
 		try{efw.server.event.finish(event,params,null);}catch(e2){}
-		return e;
+		if(typeof e =="object"){
+			if (e.error) return e;
+		}
+		throw e;
 	}
 };
 ///////////////////////////////////////////////////////////////////////////////
@@ -118,68 +168,74 @@ efw.server.db.open=function(jdbcResourceName){
 efw.server.db.executeQuery=function(oParam){
 	var groupId=oParam.groupId;
 	var sqlId=oParam.sqlId;
-	var params=oParam.params;
+	var params=efw_server_db_getDbParameters(oParam.params);
 	var mapping=oParam.mapping;
-
-	if (_engine.getFactory().getEngineName()=="Mozilla Rhino"){//java 1.6 1.7
-		var mp=new java.util.HashMap();
-		for (var key in params){mp.put(key,params[key]);}
-		params=mp;
-	}
+	
 	var rs= _database.executeQuery(groupId,sqlId,params);
 	var ret=[];
 	var meta=rs.getMetaData();
 	var parseValue=function(vl){
-		if (_engine.getFactory().getEngineName()=="Mozilla Rhino"){//java 1.6 1.7
-			var value = vl;
-		    if (typeof value =="object"){
-				if (value==null){
-					value=null;
-				}else if(value.getClass().getName()=="java.lang.String"){
-					value="" + value;
-				}else if(value.getClass().getName()=="java.lang.Boolean"){
-					value= true && value;
-				}else if(value.getClass().getName()=="java.lang.Byte"){
-					value=0+new Number(value);
-				}else if(value.getClass().getName()=="java.lang.Short"){
-					value=0+new Number(value);
-				}else if(value.getClass().getName()=="java.lang.Integer"){
-					value=0+new Number(value);
-				}else if(value.getClass().getName()=="java.lang.Long"){
-					value=0+new Number(value);
-				}else if(value.getClass().getName()=="java.lang.Float"){
-					value=0+new Number(value);
-				}else if(value.getClass().getName()=="java.lang.Double"){
-					value=0+new Number(value);
-				}else if(value.getClass().getName()=="java.math.BigDecimal"){
-					value=0+new Number(value);
-				}else if(value.getClass().getName()=="java.sql.Date"){
-					value=new Date(value);
-				}else if(value.getClass().getName()=="java.sql.Time"){
-					value=new Date(value);
-				}else if(value.getClass().getName()=="java.sql.Timestamp"){
-					value=new Date(value);
-				}else{
-					// you should do something if the comment is printed out.
-					java.lang.System.out.println(value + " is an instance of "+value.getClass().getName());
-				}
+		var value = vl;
+	    if (typeof value =="object"){
+			if (value==null){
+				value=null;
+			}else if(value.getClass().getName()=="java.lang.String"){
+				value="" + value;
+			}else if(value.getClass().getName()=="java.lang.Boolean"){
+				value= true && value;
+			}else if(value.getClass().getName()=="java.lang.Byte"
+				||value.getClass().getName()=="java.lang.Short"
+				||value.getClass().getName()=="java.lang.Integer"
+				||value.getClass().getName()=="java.lang.Long"
+				||value.getClass().getName()=="java.lang.Float"
+				||value.getClass().getName()=="java.lang.Double"
+				||value.getClass().getName()=="java.math.BigDecimal"){
+				value=0+new Number(value);
+			}else if(value.getClass().getName()=="java.sql.Date"
+				||value.getClass().getName()=="java.sql.Time"
+				||value.getClass().getName()=="java.sql.Timestamp"){
+				var dt=new Date();dt.setTime(value.getTime());value=dt;
+			}else{
+				// you should do something if the comment is printed out.
+				Packages.efw.log.LogManager.ErrorDebug("["+value + "] is an instance of "+value.getClass().getName()+" which has not been supported by efw.","");
 			}
-			vl=value;
 		}
-		return vl;
+		return value;
 	};
 	while (rs.next()) {
 		var item={};
+		var rsdata={};
+		var maxColumnCount=meta.getColumnCount();
+		for (var j=1;j<=maxColumnCount;j++){
+			var key=meta.getColumnName(j);
+			rsdata[key]=parseValue(rs.getObject(key));
+		}
+
 		if (mapping!=null){
 			for(var key in mapping){
-				item[key]=parseValue(rs.getObject(mapping[key]));
+				var mp=mapping[key];
+				if(typeof mp =="string"){
+					var vl=rsdata[mp];
+					item[key]=vl;
+				}else if(typeof mp =="function"){
+					var vl=mp(rsdata);
+					item[key]=vl;
+				}else if(typeof mp =="object" && Array.isArray(mp)){
+					var vl=rsdata[mp[0]];
+					var ft=mp[1];
+					if(vl!=null&&ft!=null){
+						if(vl.toFixed){//if vl is number #,##0.00
+							vl=""+Packages.efw.format.FormatManager.formatNumber(vl,ft);
+						}else if(vl.getTime){//if vl is date yyyyMMdd
+							vl=""+Packages.efw.format.FormatManager.formatDate(vl.getTime(),ft);
+						}
+						//if vl is not date or number, it should not have format
+					}
+					item[key]=vl;
+				}
 			}
 		}else{
-			var maxColumnCount=meta.getColumnCount();
-			for (var j=1;j<=maxColumnCount;j++){
-				var key=meta.getColumnName(j);
-				item[key]=parseValue(rs.getObject(key));
-			}
+			item=rsdata;
 		}
 		ret.push(item);
 	}
@@ -189,13 +245,13 @@ efw.server.db.executeQuery=function(oParam){
 efw.server.db.executeUpdate=function(oParam){
 	var groupId=oParam.groupId;
 	var sqlId=oParam.sqlId;
-	var params=oParam.params;
+	var params=efw_server_db_getDbParameters(oParam.params);
 	return _database.executeUpdate(groupId,sqlId,params);
 };
 efw.server.db.execute=function(oParam){
 	var groupId=oParam.groupId;
 	var sqlId=oParam.sqlId;
-	var params=oParam.params;
+	var params=efw_server_db_getDbParameters(oParam.params);
 	_database.execute(groupId,sqlId,params);
 };
 efw.server.db.rollback=function(){
@@ -207,3 +263,18 @@ efw.server.db.commit=function(){
 efw.server.db.close=function(){
 	_database.close();
 };
+
+function efw_server_db_getDbParameters(aryParam){
+	var params={};
+	for(var key in aryParam){//change blank to null for simple sql just like oracle
+		var vl=aryParam[key];
+		if (vl=="")vl=null;
+		params[key]=vl;
+	}
+	if (_engine.getFactory().getEngineName()=="Mozilla Rhino"){//java 1.6 1.7
+		var mp=new java.util.HashMap();
+		for (var key in params){mp.put(key,params[key]);}
+		params=mp;
+	}
+	return params;
+}

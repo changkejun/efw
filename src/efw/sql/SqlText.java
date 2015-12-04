@@ -14,7 +14,7 @@ final class SqlText {
 	 * @param text Sql文部品。
 	 */
 	protected SqlText(String text){
-		this.text=text;
+		this.text=text+"\n";//必ず１改行を入れる。[^\\w]のため
 	}
 	/**
 	 * 代入されるSql文部品そのもの。
@@ -34,10 +34,13 @@ final class SqlText {
 	 */
 	protected ArrayList<String> getParamKeys(){
 		ArrayList<String> ret=new ArrayList<String>();
-		Pattern p = Pattern.compile("(\\:[\\w]*)[\\s]");
+		Pattern p = Pattern.compile("(\\:[\\w]*)[^\\w]");//20150925 (\\:[\\w]*)[\\s] -> (\\:[\\w]*)[^\\w]
 		Matcher m;
 		String tmp;
-		m= p.matcher(text);
+		String subsql=text.replaceAll("//.*\\n", "\n");//コメント行を認識するため
+		subsql=subsql.replaceAll("\\-\\-.*\\n", "\n");//コメント行を認識するため
+		subsql=subsql.replaceAll("/\\*/?([^/]|[^*]/)*\\*/", "");//コメント行を認識するため
+		m= p.matcher(subsql);
 		while(m.find()){
 			tmp=m.group();
 			tmp=tmp.substring(1, tmp.length()-1);
@@ -51,7 +54,11 @@ final class SqlText {
 	 * @return　変換後の文字列を戻す。
 	 */
 	protected String getSQL(){
-		return text.replaceAll("(\\:[\\w]*)[\\s]", " ? ");
+		String subsql=text.replaceAll("//.*\\n", "\n");//コメント行を認識するため
+		subsql=subsql.replaceAll("\\-\\-.*\\n", "\n");//コメント行を認識するため
+		subsql=subsql.replaceAll("/\\*/?([^/]|[^*]/)*\\*/", "");//コメント行を認識するため
+		subsql=subsql.replaceAll("(\\:[\\w]*)", " ? ");//20150925 (\\:[\\w]*)[\\s] -> (\\:[\\w]*)[^\\w]
+		return subsql;
 	}
 	
 }

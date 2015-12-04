@@ -108,6 +108,16 @@ public final class LogManager {
     	}
     }
     /**
+     * ワーニングログを出力する。
+     * @param value ログ内容。
+     */
+    public static void WarningDebug(String value) {
+    	if (logger.getLevel().intValue()<=Level.INFO.intValue()){
+            logger.log(Level.INFO, "[EFW.WARNING]" + value.replaceAll("\n", ""));
+    	}
+    }
+    
+    /**
      * エラーログを出力する。
      * @param value1 ログ内容１。
      * @param value2　ログ内容２。
@@ -125,6 +135,16 @@ public final class LogManager {
     public static void CommDebug(String value1,String value2) {
     	if (logger.getLevel().intValue()<=Level.INFO.intValue()){
             logger.log(Level.INFO, "[EFW.OK]" + value1.replaceAll("\n", "")+" "+value2.replaceAll("\n", ""));
+    	}
+    }
+    /**
+     * ワーニングログを出力する。
+     * @param value1 ログ内容１。
+     * @param value2　ログ内容２。
+     */
+    public static void WariningDebug(String value1,String value2) {
+    	if (logger.getLevel().intValue()<=Level.INFO.intValue()){
+            logger.log(Level.INFO, "[EFW.WARNING]" + value1.replaceAll("\n", "")+" "+value2.replaceAll("\n", ""));
     	}
     }
     /**

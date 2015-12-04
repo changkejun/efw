@@ -16,7 +16,7 @@ import org.xml.sax.SAXException;
 
 import efw.efwException;
 /**
- * Sql外部化XMLファイルの管理するクラス。
+ * Sql外部化XMLファイルを管理するクラス。
  * @author Chang Kejun
  *
  */
