@@ -1,3 +1,5 @@
+<a href="https://github.com/efwGrp/efw3.X">最新バージョンのefw3.Xへ</a>
+
 # efw -- Easy FrameWork
 
 efw是一个Java Ajax框架.使用服务器端Javascript来开发程序.
